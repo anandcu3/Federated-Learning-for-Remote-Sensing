@@ -46,7 +46,7 @@ def uncor_selecter(df_label, nr_label=4, min_img=300):
 
 
 def sampler_split_for_client(cdata, idxs, df_label, nr_client=4, minimum_skew_percentage=.4):
-    selected_labels = uncor_selecter(df_label, nr_client, 300)
+    selected_labels = uncor_selecter(df_label, nr_client, 500)
 
     splitlists = []
     for sb in selected_labels:
@@ -76,14 +76,8 @@ def sampler_split_for_client(cdata, idxs, df_label, nr_client=4, minimum_skew_pe
     return splitlists
 
 
-def load_split_train_test(datadir, labelmat, valid_size=.2):
+def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, valid_size=.2):
     train_transforms = transforms.Compose([
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
-    test_transforms = transforms.Compose([
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
@@ -94,13 +88,13 @@ def load_split_train_test(datadir, labelmat, valid_size=.2):
     test_data = CustomDataSet(
         datadir, transform=train_transforms, labelmat=labelmat)
     print(train_data.__len__())
-    indices = list(range(2100))
-    split = int(np.floor(valid_size * 2100))
+    indices = list(range(train_data.__len__()))
+    split = int(np.floor(valid_size * train_data.__len__()))
     np.random.shuffle(indices)
     from torch.utils.data.sampler import SubsetRandomSampler
     train_idx, test_idx = indices[split:], indices[:split]
 
-    lists = sampler_split_for_client(train_data, train_idx, labelmat, 3, .4)
+    lists = sampler_split_for_client(train_data, train_idx, labelmat, client_nr, skewness_percent/100)
 
     test_sampler = SubsetRandomSampler(test_idx)
     testloader = torch.utils.data.DataLoader(test_data,

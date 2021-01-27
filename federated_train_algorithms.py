@@ -15,7 +15,7 @@ def train_fedavg_model(model, device, clients, valloader, optimizer, criterion, 
         for dataloaders in clients:
             model_for_client = copy.deepcopy(model)
             client_model, statistics = train_model(
-                model_for_client, device, dataloaders, criterion, optimizer, scheduler, n_classes, num_epochs=1, phase='train')
+                model_for_client, device, dataloaders, criterion, optimizer, scheduler, n_classes, num_epochs=10, phase='train')
             client_model = copy.deepcopy(client_model)
             models_client_list.append(client_model)
             print("Done with clientelo numero whateva", statistics)

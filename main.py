@@ -14,6 +14,12 @@ parser = argparse.ArgumentParser(
     description='Run speech recognition on Google or Azure. Followed by WER for the generated hypothesis.')
 parser.add_argument('--cnn_model', '-c', type=str, required=True,
                     help='Specify which CNN to use. "lenet" or "resnet34"')
+
+parser.add_argument('--client_nr', '-n', type=int, required=False, default=3,
+                    help='number of clients to split the data on')
+parser.add_argument('--skewness', '-s', type=int, required=False, default=40,
+                    help='the percentage of label skewness, when data splittd on')
+
 parser.add_argument('--data_dir', '-d', type=str, required=True,
                     help='Specify path to images folder of UCMerced_LandUse dataset. Eg. ./UCMerced_LandUse/Images')
 parser.add_argument('--multilabel_excelfilepath', type=str, default='multilabels/LandUse_Multilabeled.xlsx',
@@ -26,7 +32,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class_names = np.array(["airplane", "bare-soil", "buildings", "cars", "chaparral", "court", "dock",
                         "field", "grass", "mobile-home", "pavement", "sand", "sea", "ship", "tanks", "trees", "water"])
 data_dir = Path(args.data_dir).resolve()
-trainloaders, valloader = load_split_train_test(data_dir, df_label, .2)
+trainloaders, valloader = load_split_train_test(data_dir, df_label, args.client_nr, args.skewness, .2)
 if args.cnn_model == "lenet":
     print("Using Lenet")
     model = LENET(len(class_names))

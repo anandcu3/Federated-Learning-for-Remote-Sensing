@@ -50,7 +50,7 @@ optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 exp_lr_scheduler = optim.lr_scheduler.StepLR(
     optimizer_ft, step_size=7, gamma=0.1)
 
-C_FRACTION = 0.7
+C_FRACTION = 0.6
 model = train_fedavg_model(model, device, trainloaders, valloader, optimizer_ft,
                            criterion, exp_lr_scheduler, C_FRACTION, len(class_names), train_dataset_len, epochs=10)
 

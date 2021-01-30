@@ -27,7 +27,7 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
             running_corrects = 0
 
             # Iterate over data.
-            for inputs, labels in dataloaders:
+            for inputs, labels in dataloaders['data']:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -60,8 +60,8 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
             if phase == 'train':
                 scheduler.step()
 
-            epoch_loss = running_loss / len(dataloaders.dataset)
-            epoch_acc = (running_corrects) / len(dataloaders.dataset)
+            epoch_loss = running_loss / dataloaders['size']
+            epoch_acc = (running_corrects) / dataloaders['size']
 
             if phase == 'train':
                 tloss.append(epoch_loss)

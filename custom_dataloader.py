@@ -94,18 +94,24 @@ def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, valid_
     from torch.utils.data.sampler import SubsetRandomSampler
     train_idx, test_idx = indices[split:], indices[:split]
 
-    lists = sampler_split_for_client(train_data, train_idx, labelmat, client_nr, skewness_percent/100)
+    lists = sampler_split_for_client(
+        train_data, train_idx, labelmat, client_nr, skewness_percent/100)
 
     test_sampler = SubsetRandomSampler(test_idx)
-    testloader = torch.utils.data.DataLoader(test_data,
-                                             sampler=test_sampler, batch_size=4)
 
-    client_loaders = []
-    for indlist in lists:
-        train_sampler = SubsetRandomSampler(indlist)
-        trainloader = torch.utils.data.DataLoader(train_data,
-                                                  sampler=train_sampler, batch_size=4)
+    test_loader = torch.utils.data.DataLoader(test_data,
+                                              sampler=test_sampler, batch_size=4)
 
-        client_loaders.append(trainloader)
+    test_loader_dict = {'data': test_loader, 'size': len(test_sampler)}
 
-    return client_loaders, testloader
+    dataloaders = []
+    for client_sampler in lists:
+        train_sampler = SubsetRandomSampler(client_sampler)
+        train_loader = torch.utils.data.DataLoader(
+            train_data,
+            sampler=train_sampler,
+            batch_size=4
+        )
+        dataloaders.append({'data': train_loader, 'size': len(client_sampler)})
+
+    return dataloaders, test_loader_dict, len(train_idx)

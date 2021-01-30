@@ -32,7 +32,8 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class_names = np.array(["airplane", "bare-soil", "buildings", "cars", "chaparral", "court", "dock",
                         "field", "grass", "mobile-home", "pavement", "sand", "sea", "ship", "tanks", "trees", "water"])
 data_dir = Path(args.data_dir).resolve()
-trainloaders, valloader = load_split_train_test(data_dir, df_label, args.client_nr, args.skewness, .2)
+trainloaders, valloader, train_dataset_len = load_split_train_test(
+    data_dir, df_label, args.client_nr, args.skewness, .2)
 if args.cnn_model == "lenet":
     print("Using Lenet")
     model = LENET(len(class_names))
@@ -43,7 +44,7 @@ else:
     print("Unknown CNN")
     exit()
 
-model = model.to(device)
+#model = model.to(device)
 criterion = nn.BCEWithLogitsLoss()
 optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 exp_lr_scheduler = optim.lr_scheduler.StepLR(
@@ -51,4 +52,7 @@ exp_lr_scheduler = optim.lr_scheduler.StepLR(
 
 C_FRACTION = 0.7
 model = train_fedavg_model(model, device, trainloaders, valloader, optimizer_ft,
-                           criterion, exp_lr_scheduler, C_FRACTION, len(class_names), epochs=1)
+                           criterion, exp_lr_scheduler, C_FRACTION, len(class_names), train_dataset_len, epochs=10)
+
+
+torch.save(model, f'fed_ml_{args.cnn_model}.pt')

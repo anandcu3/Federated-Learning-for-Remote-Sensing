@@ -1,34 +1,56 @@
 from train import train_model
 import copy
+import random
+import torch
 
-
-def train_fedavg_model(model, device, clients, valloader, optimizer, criterion, scheduler, c_fraction, n_classes, epochs=10):
+def train_fedavg_model(model, device, clients, valloader, optimizer, criterion, scheduler, c_fraction, n_classes, train_dataset_len, epochs=10):
     # iterate through epochs
     for i in range(epochs):
+        init_model = copy.deepcopy(model)
+
         # get random subset of clients
-        #fraction = int( c_fraction * float(len(clients_t)) )
-        #client_subset = random.sample(clients, fraction)
+        fraction = int(c_fraction * float(len(clients)))
+        client_subset = random.sample(clients, fraction)
 
         # train each of the clients
-        models_client_list = []
+        model_client_list = []
         print("Running epoch numero " + str(i))
-        for dataloaders in clients:
+        for client in client_subset:
             model_for_client = copy.deepcopy(model)
+            model_for_client = model_for_client.to(device)
             client_model, statistics = train_model(
-                model_for_client, device, dataloaders, criterion, optimizer, scheduler, n_classes, num_epochs=10, phase='train')
-            client_model = copy.deepcopy(client_model)
-            models_client_list.append(client_model)
-            print("Done with clientelo numero whateva", statistics)
+                model_for_client, device, client, criterion, optimizer, scheduler,  n_classes, num_epochs=5, phase='train')
+            model_client_list.append(client_model)
+            print("Done with clientelo numero x with stats: ", statistics)
+            del model_for_client
+            torch.cuda.empty_cache()
 
-        # still need to average
-        # average clients params
-        # model = sum(k for 1 - num_clients): ( data_client / total_num_data ) * model_client_k
+        # first initializer
+        model_state = model_client_list[0].state_dict()
+        client_data_size = client_subset[0]['size']
+        for key in model_state:
+            model_state[key] = (client_data_size /
+                                train_dataset_len) * model_state[key]
 
-        _, statistics = train_model(
-            model, device, valloader, criterion, optimizer, scheduler, n_classes, num_epochs=1, phase='val')
+        for c in range(1, len(model_client_list)):
+
+            client_model_state = model_client_list[c].state_dict()
+            client_new_data_size = client_subset[c]['size']
+
+            for key in model_state:
+                model_state[key] += (client_new_data_size /
+                                     train_dataset_len) * client_model_state[key]
+
+        averagedModel = copy.deepcopy(init_model)
+        averagedModel.load_state_dict(model_state)
+        model = copy.deepcopy(averagedModel)
+
+        model = model.to(device)
+        model, statistics = train_model(
+            model,  device, valloader,  criterion, optimizer, scheduler,  n_classes,  num_epochs=1, phase='val')
         print("Done with validation", statistics)
 
-    return 0
+    return model
 
 
 def train_fedprox_model():

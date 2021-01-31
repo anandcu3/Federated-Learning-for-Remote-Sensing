@@ -37,8 +37,8 @@ if args.centralised:
 run_name = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 df = pd.read_excel(Path(args.multilabel_excelfilepath).resolve())
 df_label = np.array(df)
-#device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = "cpu"
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 class_names = np.array(["airplane", "bare-soil", "buildings", "cars", "chaparral", "court", "dock",
                         "field", "grass", "mobile-home", "pavement", "sand", "sea", "ship", "tanks", "trees", "water"])
 data_dir = Path(args.data_dir).resolve()
@@ -62,7 +62,7 @@ exp_lr_scheduler = optim.lr_scheduler.StepLR(
 
 C_FRACTION = 0.6
 if args.centralised:
-    model = train_model(model, device, trainloaders[0], criterion, optimizer_ft, exp_lr_scheduler, len(
+    model, _ = train_model(model, device, trainloaders[0], criterion, optimizer_ft, exp_lr_scheduler, len(
         class_names), num_epochs=args.epochs, phase='train')
     model, statistics = train_model(model,  device, valloader,  criterion, optimizer_ft,
                                     exp_lr_scheduler,  len(class_names),  num_epochs=1, phase='val')

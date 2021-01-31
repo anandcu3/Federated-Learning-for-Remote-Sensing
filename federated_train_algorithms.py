@@ -31,7 +31,8 @@ def train_fedavg_model(model, device, clients, valloader, optimizer, criterion, 
             client_model, statistics = train_model(
                 model_for_client, device, client, criterion, optimizer_ft, exp_scheduler,  n_classes, num_epochs=1, phase='train')
             model_client_list.append(client_model)
-            print(f"Done with clientelo numero {ind} with stats: {statistics}")
+            print(
+                f"Done with clientelo numero {ind + 1} with stats: {statistics}")
             #del model_for_client
             # torch.cuda.empty_cache()
 

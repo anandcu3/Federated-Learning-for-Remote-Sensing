@@ -17,22 +17,23 @@ def train_fedavg_model(model, device, clients, valloader, optimizer, criterion, 
 
         # train each of the clients
         model_client_list = []
-        print("Running epoch numero " + str(i))
+        print("Running epoch numero " + str(i + 1))
         for ind, client in enumerate(client_subset):
             #model_for_client = RESNET34(n_classes)
             model_for_client = copy.deepcopy(model)
-            #model_for_client.load_state_dict(model.state_dict())
+            # model_for_client.load_state_dict(model.state_dict())
             model_for_client = model_for_client.to(device)
-            optimizer_ft = optim.SGD(model_for_client.parameters(), lr=0.001, momentum=0.9)
+            optimizer_ft = optim.SGD(
+                model_for_client.parameters(), lr=0.001, momentum=0.9)
             exp_scheduler = optim.lr_scheduler.StepLR(
-                                optimizer_ft, step_size=7, gamma=0.1)
+                optimizer_ft, step_size=7, gamma=0.1)
 
             client_model, statistics = train_model(
-                model_for_client, device, client, criterion, optimizer_ft, exp_scheduler,  n_classes, num_epochs=10, phase='train')
+                model_for_client, device, client, criterion, optimizer_ft, exp_scheduler,  n_classes, num_epochs=1, phase='train')
             model_client_list.append(client_model)
             print(f"Done with clientelo numero {ind} with stats: {statistics}")
             #del model_for_client
-            #torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
 
         # first initializer
         model_state = model_client_list[0].state_dict()

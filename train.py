@@ -13,7 +13,7 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
     #best_acc = 0.0
 
     for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('Epoch {}/{}'.format(epoch + 1, num_epochs))
         print('-' * 10)
 
         # Each epoch has a training and validation phase
@@ -41,7 +41,6 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
                     #_, preds = torch.max(outputs, 1)
                     outputcpu = outputs.cpu()
                     preds = np.heaviside(outputcpu.detach().numpy(), 0)
-                    #print(outputs, preds)
                     loss = criterion(outputs, labels.type(torch.float))
 
                     # backward + optimize only if in training phase
@@ -56,7 +55,6 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += ((torch.sum(torch.from_numpy(preds).to(device)
                                                 == labels.data)).item() / n_classes)
-                # print("running_corrects",running_corrects)
             if phase == 'train':
                 scheduler.step()
 

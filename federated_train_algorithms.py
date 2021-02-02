@@ -4,10 +4,16 @@ import random
 import torch
 from cnn_nets import LENET, RESNET34
 import torch.optim as optim
+import numpy as np
 
 
 def train_fedavg_model(model, device, clients, valloader, optimizer, criterion, scheduler, c_fraction, n_classes, train_dataset_len, epochs=10):
     # iterate through epochs
+
+    best_model_wts = copy.deepcopy(model)
+    best_acc = 0.0
+    stats = []
+
     for i in range(epochs):
         init_model = copy.deepcopy(model)
 
@@ -29,7 +35,7 @@ def train_fedavg_model(model, device, clients, valloader, optimizer, criterion, 
                 optimizer_ft, step_size=7, gamma=0.1)
 
             client_model, statistics = train_model(
-                model_for_client, device, client, criterion, optimizer_ft, exp_scheduler,  n_classes, num_epochs=1, phase='train')
+                model_for_client, device, client, criterion, optimizer_ft, exp_scheduler,  n_classes, num_epochs=5, phase='train')
             model_client_list.append(client_model)
             print(
                 f"Done with clientelo numero {ind + 1} with stats: {statistics}")
@@ -59,9 +65,16 @@ def train_fedavg_model(model, device, clients, valloader, optimizer, criterion, 
         model = model.to(device)
         model, statistics = train_model(
             model,  device, valloader,  criterion, optimizer, scheduler,  n_classes,  num_epochs=1, phase='val')
-        print("Done with validation", statistics)
 
-    return model
+                    # deep copy the model
+        if statistics[3][0] > best_acc:
+                best_acc = statistics[3][0]
+                best_model_wts = copy.deepcopy(model)
+
+        print("Done with validation", statistics)
+        stats.append([statistics[2][0],statistics[3][0]])
+
+    return model, best_model_wts, np.array(stats)
 
 
 def train_fedprox_model():

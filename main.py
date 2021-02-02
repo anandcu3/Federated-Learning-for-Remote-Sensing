@@ -60,7 +60,7 @@ optimizer_ft = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
 exp_lr_scheduler = optim.lr_scheduler.StepLR(
     optimizer_ft, step_size=7, gamma=0.1)
 
-C_FRACTION = 0.6
+C_FRACTION = 0.67
 if args.centralised:
     model, _ = train_model(model, device, trainloaders[0], criterion, optimizer_ft, exp_lr_scheduler, len(
         class_names), num_epochs=args.epochs, phase='train')
@@ -69,8 +69,11 @@ if args.centralised:
     print("Done with validation", statistics)
 
 else:
-    model = train_fedavg_model(model, device, trainloaders, valloader, optimizer_ft, criterion,
+    last_model, best_model, loss_acc_stats = train_fedavg_model(model, device, trainloaders, valloader, optimizer_ft, criterion,
                                exp_lr_scheduler, C_FRACTION, len(class_names), train_dataset_len, epochs=args.epochs)
 
+    torch.save(last_model, f'latest_fedavg_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
+    torch.save(last_model, f'best_fedavg_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
+    np.savetxt(f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', loss_acc_stats, delimiter=",")
+    np.savetxt(f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")
 
-torch.save(model, f'run_{run_name}.pt')

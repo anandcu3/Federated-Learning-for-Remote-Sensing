@@ -1,4 +1,4 @@
-from cnn_nets import LENET, RESNET34
+from cnn_nets import LENET, RESNET34, ALEXNET
 from custom_dataloader import load_split_train_test, uncor_selecter
 from custom_loss_fns import BasicLoss_wrapper
 from train import train_model
@@ -11,11 +11,13 @@ import torch.optim as optim
 import argparse
 import torch
 import datetime
+import copy
+
 
 parser = argparse.ArgumentParser(
     description='Run speech recognition on Google or Azure. Followed by WER for the generated hypothesis.')
 parser.add_argument('--cnn_model', '-c', type=str, required=True,
-                    help='Specify which CNN to use. "lenet" or "resnet34"')
+                    help='Specify which CNN to use. "lenet", "alexnet" or "resnet34"')
 parser.add_argument('--client_nr', '-n', type=int, required=False, default=3,
                     help='number of clients to split the data on')
 parser.add_argument('--federated_algo', '-f', type=str, required=False, default="FedAvg",
@@ -54,6 +56,9 @@ if args.cnn_model == "lenet":
 elif args.cnn_model == "resnet34":
     print("Using Resnet 34")
     model = RESNET34(len(class_names))
+elif args.cnn_model == "alexnet":
+    print("Using alexnet")
+    model = ALEXNET(len(class_names))
 else:
     print("Unknown CNN")
     exit()
@@ -66,11 +71,30 @@ if args.centralised:
     exp_lr_scheduler = optim.lr_scheduler.StepLR(
         optimizer_ft, step_size=7, gamma=0.1)
     criterion = BasicLoss_wrapper(criterion)
-    model, _ = train_model(model, device, trainloaders[0], criterion, optimizer_ft, exp_lr_scheduler, len(
-        class_names), num_epochs=args.epochs, phase='train')
-    model, statistics = train_model(model,  device, valloader,  criterion, optimizer_ft,
-                                    exp_lr_scheduler,  len(class_names),  num_epochs=1, phase='val')
-    print("Done with validation", statistics)
+
+    best_model = copy.deepcopy(model)
+    best_acc = 0.0
+    stats = []
+    for e in range(args.epochs):
+        model, _ = train_model(model, device, trainloaders[0], criterion, optimizer_ft, exp_lr_scheduler, len(
+            class_names), num_epochs=1, phase='train')
+        model, statistics = train_model(model,  device, valloader,  criterion, optimizer_ft,
+                                        exp_lr_scheduler,  len(class_names),  num_epochs=1, phase='val')
+
+        if statistics[3][0] > best_acc:
+            best_acc = statistics[3][0]
+            best_model = copy.deepcopy(model)
+        print(f"centralised at epoch {e} with validation acc {statistics[3][0]}")
+        stats.append([statistics[2][0], statistics[3][0]])
+
+    torch.save(
+        model, f'latest_centralised_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
+    torch.save(
+        best_model, f'best_centralised_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
+    np.savetxt(
+        f'centralised_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', np.array(stats).T, delimiter=",")
+        
+
 
 else:
     if args.federated_algo == "FedAvg":
@@ -88,7 +112,5 @@ else:
         last_model, f'latest_fedavg_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     torch.save(
         best_model, f'best_fedavg_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
-    np.savetxt(
-        f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', loss_acc_stats, delimiter=",")
     np.savetxt(
         f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")

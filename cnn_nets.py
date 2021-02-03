@@ -43,3 +43,13 @@ class RESNET34(nn.Module):
 
     def forward(self, x):
         return self.model_ft(x)
+
+class ALEXNET(nn.Module):
+    def __init__(self, n_classes):
+        super(ALEXNET, self).__init__()
+        self.model_ft = models.alexnet(pretrained=True)
+        num_ftrs = self.model_ft.classifier[4].out_features
+        #self.model_ft.fc = nn.Linear(num_ftrs, n_classes)
+        self.model_ft.classifier[6] = nn.Linear(num_ftrs, n_classes)
+    def forward(self, x):
+        return self.model_ft(x)

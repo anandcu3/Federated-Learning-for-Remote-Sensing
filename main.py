@@ -92,3 +92,4 @@ else:
         f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', loss_acc_stats, delimiter=",")
     np.savetxt(
         f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")
+        

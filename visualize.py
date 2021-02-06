@@ -21,15 +21,28 @@ def read_csv(path):
         return loss, acc
 
 def visualize(path: str):
+    if path[-3:] != "csv":
+        print("You need to reference a CSV file, e.g. myfile.csv")
+        exit()
+
     loss, acc = read_csv(path)
 
     # plot
     loss_hist = np.array(loss)
     acc_hist = np.array(acc)
 
-    plt.title("Validation Accuracy vs. Number of Training Epochs")
+    # get parameters
+    path = path[:-4]
+    chars = path.split("_")
+    fed_alg = chars[0]
+    model = chars[3]
+    num_clients = chars[5]
+    skew = chars[7]
+    title = "Alg: " + fed_alg + "; Model: " +  model + "; Number of clients: " + num_clients + "; skewness: 0." + skew
+    
+    plt.title(title)
     plt.xlabel("Training Epochs")
-    plt.ylabel("Accuracy")
+    plt.ylabel("Accuracy/Loss")
     plt.plot(range(1,len(loss)+1),loss_hist,label="Loss")
     plt.plot(range(1,len(acc)+1),acc_hist,label="Accuracy")
     plt.ylim((0,1.))

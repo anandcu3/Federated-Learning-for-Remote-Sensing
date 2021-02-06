@@ -85,11 +85,11 @@ else:
     last_model, best_model, loss_acc_stats = federated_algo.train_federated_model()
 
     torch.save(
-        last_model, f'latest_fedavg_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
+        last_model, f'latest_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     torch.save(
-        best_model, f'best_fedavg_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
+        best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     np.savetxt(
-        f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', loss_acc_stats, delimiter=",")
+        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', loss_acc_stats, delimiter=",")
     np.savetxt(
-        f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")
+        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")
         

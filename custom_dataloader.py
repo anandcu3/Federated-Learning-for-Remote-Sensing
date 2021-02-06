@@ -8,12 +8,13 @@ import torch
 def uncor_selecter(small_label_skewness ,df_label, nr_label=4, min_img=300):
     """retrun a list with the least correlated labels """
     image_perlabel = np.sum(df_label[:, 1:], axis=0)
+    df_label = df_label[:, 1:]
     if small_label_skewness:
         chosen_label = np.where(np.any([image_perlabel < min_img], axis=0))[0]
-    else:
+    else: 
         chosen_label = np.where(np.any([image_perlabel > min_img], axis=0))[0]
-    print(chosen_label, image_perlabel[chosen_label])
 
+    print(chosen_label, image_perlabel[chosen_label])
     selected_list = []
     allcor_lost = np.array([0, 0, 0])
     for i in range(0, len(chosen_label) - 1):
@@ -37,7 +38,7 @@ def uncor_selecter(small_label_skewness ,df_label, nr_label=4, min_img=300):
             overall_xor = 0
             for j in (selected_list):
                 overall_xor += np.sum(np.logical_xor(df_label[:, i].astype(bool), df_label[:, j].astype(
-                    bool))) - np.sum(np.logical_and(df_label[:, i], df_label[:, j]))
+                    bool))) - np.sum(np.logical_and(df_label[:, i], df_label[:, j]).astype(int))
 
             if overall_xor >= largestxor:
                 largestxor = overall_xor

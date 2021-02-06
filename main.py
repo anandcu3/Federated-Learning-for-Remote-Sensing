@@ -30,10 +30,12 @@ parser.add_argument('--lr', type=float, required=False, default=0.001,
                     help='Learning Rate')
 parser.add_argument('--centralised', dest='centralised', action='store_true',
                     default=False, help="Use the flag if centralised learning is required")
+parser.add_argument('--small_skew', action='store_true',
+                    default=False, help="Use the flag to skew the small represented label classes")
 parser.add_argument('--data_dir', '-d', type=str, required=True,
                     help='Specify path to images folder of UCMerced_LandUse dataset. Eg. ./UCMerced_LandUse/Images')
 parser.add_argument('--multilabel_excelfilepath', type=str, default='multilabels/LandUse_Multilabeled.xlsx',
-                    help='Specify path to images folder of UCMerced_LandUse dataset. Eg. ./UCMerced_LandUse/Images')
+                    help='Specify path to label file of UCMerced_LandUse dataset. Eg. ./labelfolder/LandUse_Multilabeled.xlsx')
 args = parser.parse_args()
 
 class_names = np.array(["airplane", "bare-soil", "buildings", "cars", "chaparral", "court", "dock",
@@ -64,7 +66,7 @@ else:
     exit()
 
 trainloaders, valloader, train_dataset_len = load_split_train_test(
-    data_dir, df_label, args.client_nr, args.skewness, .2)
+    data_dir, df_label, args.client_nr, args.skewness, args.small_skew, .2)
 
 if args.centralised:
     optimizer_ft = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
@@ -109,8 +111,9 @@ else:
     last_model, best_model, loss_acc_stats = federated_algo.train_federated_model()
 
     torch.save(
-        last_model, f'latest_fedavg_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
+        last_model, f'latest_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     torch.save(
-        best_model, f'best_fedavg_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
+        best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     np.savetxt(
-        f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")
+        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")
+        

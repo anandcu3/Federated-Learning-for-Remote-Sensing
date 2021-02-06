@@ -5,18 +5,21 @@ import random
 import torch
 
 
-def uncor_selecter(df_label, nr_label=4, min_img=300):
+def uncor_selecter(small_label_skewness ,df_label, nr_label=4, min_img=300):
     """retrun a list with the least correlated labels """
     image_perlabel = np.sum(df_label[:, 1:], axis=0)
-    biggest_label = np.where(np.any([image_perlabel > min_img], axis=0))[0]
-    print(biggest_label, image_perlabel[biggest_label])
+    if small_label_skewness:
+        chosen_label = np.where(np.any([image_perlabel < min_img], axis=0))[0]
+    else:
+        chosen_label = np.where(np.any([image_perlabel > min_img], axis=0))[0]
+    print(chosen_label, image_perlabel[chosen_label])
 
     selected_list = []
     allcor_lost = np.array([0, 0, 0])
-    for i in range(0, len(biggest_label) - 1):
-        it = biggest_label[i]
-        for j in range(i + 1, len(biggest_label)):
-            jt = biggest_label[j]
+    for i in range(0, len(chosen_label) - 1):
+        it = chosen_label[i]
+        for j in range(i + 1, len(chosen_label)):
+            jt = chosen_label[j]
 
             colxor = np.sum(np.logical_xor(df_label[:, it].astype(bool), df_label[:, jt].astype(
                 bool))) - np.sum(np.logical_and(df_label[:, it], df_label[:, jt]))
@@ -27,10 +30,10 @@ def uncor_selecter(df_label, nr_label=4, min_img=300):
     #print(sorted_list, selected_list)
 
     while len(selected_list) < nr_label:
-        biggest_label = np.setdiff1d(biggest_label, np.array(selected_list))
+        chosen_label = np.setdiff1d(chosen_label, np.array(selected_list))
         largestxor = 0
         largestind = 0
-        for i in biggest_label:
+        for i in chosen_label:
             overall_xor = 0
             for j in (selected_list):
                 overall_xor += np.sum(np.logical_xor(df_label[:, i].astype(bool), df_label[:, j].astype(
@@ -45,9 +48,9 @@ def uncor_selecter(df_label, nr_label=4, min_img=300):
     return selected_list
 
 
-def sampler_split_for_client(cdata, idxs, df_label, nr_client=4, minimum_skew_percentage=.4):
+def sampler_split_for_client(cdata, idxs, df_label, small_label_skewness, nr_client=4, minimum_skew_percentage=.4):
     np.random.seed(11)
-    selected_labels = uncor_selecter(df_label, nr_client, 500)
+    selected_labels = uncor_selecter(small_label_skewness, df_label, nr_client, 500)
 
     splitlists = []
     for sb in selected_labels:
@@ -77,7 +80,7 @@ def sampler_split_for_client(cdata, idxs, df_label, nr_client=4, minimum_skew_pe
     return splitlists
 
 
-def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, valid_size=.2):
+def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_label_skewness,valid_size=.2):
     np.random.seed(1)
     train_transforms = transforms.Compose([
         transforms.RandomResizedCrop(224),
@@ -97,7 +100,7 @@ def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, valid_
     train_idx, test_idx = indices[split:], indices[:split]
 
     lists = sampler_split_for_client(
-        train_data, train_idx, labelmat, client_nr, skewness_percent/100)
+        train_data, train_idx, labelmat, small_label_skewness , client_nr, skewness_percent/100)
 
     test_sampler = SubsetRandomSampler(test_idx)
 

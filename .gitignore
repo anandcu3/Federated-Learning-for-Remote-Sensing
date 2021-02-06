@@ -4,3 +4,5 @@
 UCMerced_LandUse
 __pycache__
 UCMerced_LandUse_augment/Images
+*.csv
+.vscode

@@ -94,7 +94,7 @@ if args.centralised:
     torch.save(
         best_model, f'best_centralised_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     np.savetxt(
-        f'centralised_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', np.array(stats).T, delimiter=",")
+        f'centralised_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', np.array(stats).T, delimiter=",")
         
 
 
@@ -115,5 +115,5 @@ else:
     torch.save(
         best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     np.savetxt(
-        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")
+        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', loss_acc_stats.T, delimiter=",")
         

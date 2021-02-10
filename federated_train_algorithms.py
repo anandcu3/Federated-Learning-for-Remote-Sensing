@@ -37,7 +37,8 @@ class FedAvg():
 
             # train each of the clients
             model_client_list = []
-            print("Running epoch numero " + str(i + 1))
+            print("----------------------------------")
+            print("Running epoch number " + str(i + 1))
             for ind, client in enumerate(client_subset):
                 #model_for_client = RESNET34(n_classes)
                 model_for_client = copy.deepcopy(self.model)
@@ -52,7 +53,7 @@ class FedAvg():
                     model_for_client, self.device, client, self.criterion, optimizer_ft, exp_scheduler,  self.n_classes, num_epochs=5, phase='train')
                 model_client_list.append(client_model)
                 print(
-                    f"Done with clientelo numero {ind + 1} with stats: {statistics}")
+                    f"Done with client number {ind + 1} with stats: {statistics}")
                 #del model_for_client
                 # torch.cuda.empty_cache()
 
@@ -97,3 +98,46 @@ class FedProx(FedAvg):
                                       criterion, scheduler, n_classes, train_dataset_len, c_fraction, epochs)
         self.mu = mu
         self.criterion = FedProxLoss(criterion, mu)
+
+class BSP():
+    def __init__(self, model, device, clients, valloader, optimizer, criterion, scheduler, n_classes, train_dataset_len, epochs=10):
+        self.model = model
+        self.device = device
+        self.clients = clients
+        self.valloader = valloader
+        self.optimizer = optimizer
+        self.criterion = BasicLoss_wrapper(criterion)
+        self.scheduler = scheduler
+        self.n_classes = n_classes
+        self.train_dataset_len = train_dataset_len
+        self.epochs = epochs
+
+    def train_federated_model(self):
+        best_acc = 0.0
+        stats = []
+
+        # iterate through epochs
+        for i in range(self.epochs):
+            print("----------------------------------")
+            print("Running epoch number " + str(i + 1))
+            for ind, client in enumerate(self.clients):
+                optimizer_ft = self.optimizer(self.model.parameters(), lr=0.001, momentum=0.9)
+                exp_scheduler = self.scheduler(optimizer_ft, step_size=7, gamma=0.1)
+                self.model = self.model.to(self.device)
+                self.model, statistics = train_model(
+                    self.model, self.device, client, self.criterion, optimizer_ft, exp_scheduler, self.n_classes, num_epochs=1, phase='train')
+                print(f"Done with client number {ind + 1} with stats: {statistics}")
+
+            self.model = self.model.to(self.device)
+            self.model, statistics = train_model(
+                self.model, self.device, self.valloader, self.criterion, None, None, self.n_classes,  num_epochs=1, phase='val')
+            
+            # deep copy the model
+            if statistics[3][0] > best_acc:
+                best_acc = statistics[3][0]
+                self.best_model_wts = copy.deepcopy(self.model)
+
+            print("Done with validation", statistics)
+            stats.append([statistics[2][0], statistics[3][0]])
+        
+        return self.model, self.best_model_wts, np.array(stats)

@@ -2,7 +2,7 @@ from cnn_nets import LENET, RESNET34, ALEXNET
 from custom_dataloader import load_split_train_test, uncor_selecter
 from custom_loss_fns import BasicLoss_wrapper
 from train import train_model
-from federated_train_algorithms import FedAvg, FedProx
+from federated_train_algorithms import FedAvg, FedProx, BSP
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ parser.add_argument('--cnn_model', '-c', type=str, required=True,
 parser.add_argument('--client_nr', '-n', type=int, required=False, default=3,
                     help='number of clients to split the data on')
 parser.add_argument('--federated_algo', '-f', type=str, required=False, default="FedAvg",
-                    help='Specify the federated algorithm if not running on centralised mode. FedAvg (default) or FedProx')
+                    help='Specify the federated algorithm if not running on centralised mode. FedAvg (default), FedProx or BSP')
 parser.add_argument('--skewness', '-s', type=int, required=False, default=40,
                     help='the percentage of label skewness, when data splittd on')
 parser.add_argument('--epochs', '-e', type=int, required=False, default=15,
@@ -105,6 +105,9 @@ else:
     elif args.federated_algo == "FedProx":
         federated_algo = FedProx(model, device, trainloaders, valloader, optim.SGD, criterion,
                                  optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, C_FRACTION, MU, epochs=args.epochs)
+    elif args.federated_algo == "BSP":
+        federated_algo = BSP(model, device, trainloaders, valloader, optim.SGD, criterion,
+                                optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, epochs=args.epochs)
     else:
         print("Specify a valid federated algorithm")
         exit()

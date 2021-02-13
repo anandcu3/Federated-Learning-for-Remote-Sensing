@@ -2,7 +2,7 @@ from cnn_nets import LENET, RESNET34, ALEXNET
 from custom_dataloader import load_split_train_test, uncor_selecter
 from custom_loss_fns import BasicLoss_wrapper
 from train import train_model
-from federated_train_algorithms import FedAvg, FedProx, BSP
+from federated_train_algorithms import FedAvg, FedProx
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -21,25 +21,19 @@ parser.add_argument('--cnn_model', '-c', type=str, required=True,
 parser.add_argument('--client_nr', '-n', type=int, required=False, default=3,
                     help='number of clients to split the data on')
 parser.add_argument('--federated_algo', '-f', type=str, required=False, default="FedAvg",
-                    help='Specify the federated algorithm if not running on centralised mode. FedAvg (default), FedProx or BSP')
+                    help='Specify the federated algorithm if not running on centralised mode. FedAvg (default) or FedProx')
 parser.add_argument('--skewness', '-s', type=int, required=False, default=40,
                     help='the percentage of label skewness, when data splittd on')
 parser.add_argument('--epochs', '-e', type=int, required=False, default=15,
                     help='the number of epochs')
-parser.add_argument('--client_epochs', '-ce', type=int, required=False, default=5,
-                    help='the number of epochs per client')
 parser.add_argument('--lr', type=float, required=False, default=0.001,
                     help='Learning Rate')
-parser.add_argument('--vs', type=float, required=False, default=.2,
-                    help='validation split')
 parser.add_argument('--centralised', dest='centralised', action='store_true',
                     default=False, help="Use the flag if centralised learning is required")
-parser.add_argument('--small_skew', action='store_true',
-                    default=False, help="Use the flag to skew the small represented label classes")
 parser.add_argument('--data_dir', '-d', type=str, required=True,
                     help='Specify path to images folder of UCMerced_LandUse dataset. Eg. ./UCMerced_LandUse/Images')
 parser.add_argument('--multilabel_excelfilepath', type=str, default='multilabels/LandUse_Multilabeled.xlsx',
-                    help='Specify path to label file of UCMerced_LandUse dataset. Eg. ./labelfolder/LandUse_Multilabeled.xlsx')
+                    help='Specify path to images folder of UCMerced_LandUse dataset. Eg. ./UCMerced_LandUse/Images')
 args = parser.parse_args()
 
 class_names = np.array(["airplane", "bare-soil", "buildings", "cars", "chaparral", "court", "dock",
@@ -70,7 +64,7 @@ else:
     exit()
 
 trainloaders, valloader, train_dataset_len = load_split_train_test(
-    data_dir, df_label, args.client_nr, args.skewness, args.small_skew, args.vs)
+    data_dir, df_label, args.client_nr, args.skewness, .2)
 
 if args.centralised:
     optimizer_ft = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
@@ -98,7 +92,7 @@ if args.centralised:
     torch.save(
         best_model, f'best_centralised_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     np.savetxt(
-        f'centralised_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', np.array(stats).T, delimiter=",")
+        f'centralised_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', np.array(stats).T, delimiter=",")
         
 
 
@@ -109,18 +103,21 @@ else:
     elif args.federated_algo == "FedProx":
         federated_algo = FedProx(model, device, trainloaders, valloader, optim.SGD, criterion,
                                  optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, C_FRACTION, MU, epochs=args.epochs)
-    elif args.federated_algo == "BSP":
-        federated_algo = BSP(model, device, trainloaders, valloader, optim.SGD, criterion,
-                                optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, epochs=args.epochs)
     else:
         print("Specify a valid federated algorithm")
         exit()
     last_model, best_model, loss_acc_stats = federated_algo.train_federated_model()
 
     torch.save(
-        last_model, f'latest_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
+        last_model, f'latest_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     torch.save(
-        best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
+        best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     np.savetxt(
-        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.csv', loss_acc_stats.T, delimiter=",")
+<<<<<<< HEAD
+        f'fedavg_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")
+=======
+        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', loss_acc_stats, delimiter=",")
+    np.savetxt(
+        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}2.csv', loss_acc_stats.T, delimiter=",")
         
+>>>>>>> 2a4d47bffafd96fff4041d468c232d378ff1b114

@@ -9,7 +9,7 @@ from custom_loss_fns import BasicLoss_wrapper, FedProxLoss
 
 
 class FedAvg():
-    def __init__(self, model, device, clients, valloader, optimizer, criterion, scheduler, n_classes, train_dataset_len, c_fraction, epochs=10):
+    def __init__(self, model, device, clients, valloader, optimizer, criterion, scheduler, n_classes, train_dataset_len, c_fraction, epochs=10, client_epochs=5):
         self.best_model_wts = copy.deepcopy(model)
         self.init_model = copy.deepcopy(model)
         self.model = model
@@ -23,6 +23,7 @@ class FedAvg():
         self.train_dataset_len = train_dataset_len
         self.c_fraction = c_fraction
         self.epochs = epochs
+        self.client_epochs = client_epochs
 
     def train_federated_model(self):
         best_acc = 0.0
@@ -50,7 +51,7 @@ class FedAvg():
                     optimizer_ft, step_size=7, gamma=0.1)
 
                 client_model, statistics = train_model(
-                    model_for_client, self.device, client, self.criterion, optimizer_ft, exp_scheduler,  self.n_classes, num_epochs=5, phase='train')
+                    model_for_client, self.device, client, self.criterion, optimizer_ft, exp_scheduler,  self.n_classes, num_epochs=self.client_epochs, phase='train')
                 model_client_list.append(client_model)
                 print(
                     f"Done with client number {ind + 1} with stats: {statistics}")
@@ -93,9 +94,9 @@ class FedAvg():
 
 
 class FedProx(FedAvg):
-    def __init__(self, model, device, clients, valloader, optimizer, criterion, scheduler, n_classes, train_dataset_len, c_fraction, mu=0, epochs=10):
+    def __init__(self, model, device, clients, valloader, optimizer, criterion, scheduler, n_classes, train_dataset_len, c_fraction, mu=0, epochs=10,client_epochs=5):
         super(FedProx, self).__init__(model, device, clients, valloader, optimizer,
-                                      criterion, scheduler, n_classes, train_dataset_len, c_fraction, epochs)
+                                      criterion, scheduler, n_classes, train_dataset_len, c_fraction, epochs, client_epochs)
         self.mu = mu
         self.criterion = FedProxLoss(criterion, mu)
 

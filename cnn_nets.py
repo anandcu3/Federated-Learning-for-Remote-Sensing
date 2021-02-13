@@ -36,7 +36,7 @@ class LENET(nn.Module):
 class RESNET34(nn.Module):
     def __init__(self, n_classes):
         super(RESNET34, self).__init__()
-        self.model_ft = models.resnet34(pretrained=True)
+        self.model_ft = models.resnet34(pretrained=False)
         num_ftrs = self.model_ft.fc.in_features
 
         self.model_ft.fc = nn.Linear(num_ftrs, n_classes)
@@ -47,7 +47,7 @@ class RESNET34(nn.Module):
 class ALEXNET(nn.Module):
     def __init__(self, n_classes):
         super(ALEXNET, self).__init__()
-        self.model_ft = models.alexnet(pretrained=True)
+        self.model_ft = models.alexnet(pretrained=False)
         num_ftrs = self.model_ft.classifier[4].out_features
         #self.model_ft.fc = nn.Linear(num_ftrs, n_classes)
         self.model_ft.classifier[6] = nn.Linear(num_ftrs, n_classes)

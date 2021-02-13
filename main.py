@@ -111,7 +111,7 @@ else:
                                  optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, C_FRACTION, MU, epochs=args.epochs, client_epochs=args.client_epochs)
     elif args.federated_algo == "BSP":
         federated_algo = BSP(model, device, trainloaders, valloader, optim.SGD, criterion,
-                                optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, epochs=args.epochs, client_epochs=args.client_epochs)
+                                optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, epochs=args.epochs)
     else:
         print("Specify a valid federated algorithm")
         exit()

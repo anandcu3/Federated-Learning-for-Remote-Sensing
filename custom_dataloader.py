@@ -5,13 +5,13 @@ import random
 import torch
 
 
-def uncor_selecter(small_label_skewness ,df_label, nr_label=4, min_img=300):
+def uncor_selecter(small_label_skewness, df_label, nr_label=4, min_img=300):
     """retrun a list with the least correlated labels """
     image_perlabel = np.sum(df_label[:, 1:], axis=0)
     df_label = df_label[:, 1:]
     if small_label_skewness:
         chosen_label = np.where(np.any([image_perlabel < min_img], axis=0))[0]
-    else: 
+    else:
         chosen_label = np.where(np.any([image_perlabel > min_img], axis=0))[0]
 
     print(chosen_label, image_perlabel[chosen_label])
@@ -51,8 +51,8 @@ def uncor_selecter(small_label_skewness ,df_label, nr_label=4, min_img=300):
 
 def sampler_split_for_client(cdata, idxs, df_label, small_label_skewness, nr_client=4, minimum_skew_percentage=.4):
     np.random.seed(11)
-    selected_labels = uncor_selecter(small_label_skewness, df_label, nr_client, 500)
-
+    selected_labels = uncor_selecter(
+        small_label_skewness, df_label, nr_client, 500)
     splitlists = []
     for sb in selected_labels:
         splitlists.append([])
@@ -76,12 +76,10 @@ def sampler_split_for_client(cdata, idxs, df_label, small_label_skewness, nr_cli
             flip = np.random.randint(nr_client)
             splitlists[flip].append(i)
 
-    for alist in splitlists:
-        print(len(alist))
     return splitlists
 
 
-def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_label_skewness,valid_size=.2):
+def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_label_skewness, valid_size=.2):
     np.random.seed(1)
     train_transforms = transforms.Compose([
         transforms.RandomResizedCrop(224),
@@ -101,7 +99,7 @@ def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_
     train_idx, test_idx = indices[split:], indices[:split]
 
     lists = sampler_split_for_client(
-        train_data, train_idx, labelmat, small_label_skewness , client_nr, skewness_percent/100)
+        train_data, train_idx, labelmat, small_label_skewness, client_nr, skewness_percent / 100)
 
     test_sampler = SubsetRandomSampler(test_idx)
 
@@ -114,12 +112,12 @@ def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_
     if client_nr == 1:
         train_sampler = SubsetRandomSampler(train_idx)
         train_loader = torch.utils.data.DataLoader(
-                train_data,
-                sampler=train_sampler,
-                batch_size=4
-            )
+            train_data,
+            sampler=train_sampler,
+            batch_size=4
+        )
         dataloaders.append({'data': train_loader, 'size': len(train_idx)})
-    else:    
+    else:
         for client_sampler in lists:
             train_sampler = SubsetRandomSampler(client_sampler)
             train_loader = torch.utils.data.DataLoader(
@@ -127,6 +125,8 @@ def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_
                 sampler=train_sampler,
                 batch_size=4
             )
-            dataloaders.append({'data': train_loader, 'size': len(client_sampler)})
-
+            dataloaders.append(
+                {'data': train_loader, 'size': len(client_sampler)})
+    print("Num of dataloaders : ", len(dataloaders))
+    print(["Length of all dataloaders : ", a["size"] for a in dataloaders])
     return dataloaders, test_loader_dict, len(train_idx)

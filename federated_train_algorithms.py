@@ -51,7 +51,7 @@ class FedAvg():
                     optimizer_ft, step_size=7, gamma=0.1)
 
                 client_model, statistics = train_model(
-                    model_for_client, self.device, client, self.criterion, optimizer_ft, exp_scheduler,  self.n_classes, num_epochs=self.client_epochs, phase='train')
+                    model_for_client, self.device, client, self.criterion, optimizer_ft, exp_scheduler,  self.n_classes, num_epochs=self.client_epochs, phase='train', valloader_for_train=self.valloader)
                 model_client_list.append(client_model)
                 print(
                     f"Done with client number {ind + 1} with stats: {statistics}")
@@ -94,11 +94,12 @@ class FedAvg():
 
 
 class FedProx(FedAvg):
-    def __init__(self, model, device, clients, valloader, optimizer, criterion, scheduler, n_classes, train_dataset_len, c_fraction, mu=0, epochs=10,client_epochs=5):
+    def __init__(self, model, device, clients, valloader, optimizer, criterion, scheduler, n_classes, train_dataset_len, c_fraction, mu=0, epochs=10, client_epochs=5):
         super(FedProx, self).__init__(model, device, clients, valloader, optimizer,
                                       criterion, scheduler, n_classes, train_dataset_len, c_fraction, epochs, client_epochs)
         self.mu = mu
         self.criterion = FedProxLoss(criterion, mu)
+
 
 class BSP():
     def __init__(self, model, device, clients, valloader, optimizer, criterion, scheduler, n_classes, train_dataset_len, epochs=10):
@@ -122,17 +123,20 @@ class BSP():
             print("----------------------------------")
             print("Running epoch number " + str(i + 1))
             for ind, client in enumerate(self.clients):
-                optimizer_ft = self.optimizer(self.model.parameters(), lr=0.001, momentum=0.9)
-                exp_scheduler = self.scheduler(optimizer_ft, step_size=7, gamma=0.1)
+                optimizer_ft = self.optimizer(
+                    self.model.parameters(), lr=0.001, momentum=0.9)
+                exp_scheduler = self.scheduler(
+                    optimizer_ft, step_size=7, gamma=0.1)
                 self.model = self.model.to(self.device)
                 self.model, statistics = train_model(
                     self.model, self.device, client, self.criterion, optimizer_ft, exp_scheduler, self.n_classes, num_epochs=1, phase='train')
-                print(f"Done with client number {ind + 1} with stats: {statistics}")
+                print(
+                    f"Done with client number {ind + 1} with stats: {statistics}")
 
             self.model = self.model.to(self.device)
             self.model, statistics = train_model(
                 self.model, self.device, self.valloader, self.criterion, None, None, self.n_classes,  num_epochs=1, phase='val')
-            
+
             # deep copy the model
             if statistics[3][0] > best_acc:
                 best_acc = statistics[3][0]
@@ -140,5 +144,5 @@ class BSP():
 
             print("Done with validation", statistics)
             stats.append([statistics[2][0], statistics[3][0]])
-        
+
         return self.model, self.best_model_wts, np.array(stats)

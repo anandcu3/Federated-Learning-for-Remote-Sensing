@@ -50,7 +50,7 @@ df_label = np.array(df)
 
 criterion = nn.BCEWithLogitsLoss()
 data_dir = Path(args.data_dir).resolve()
-C_FRACTION = 0.67  # For FedAvg and FedProx
+C_FRACTION = 0.1  # For FedAvg and FedProx
 MU = 1  # For FedProx
 
 if args.centralised:
@@ -90,7 +90,8 @@ if args.centralised:
         if statistics[3][0] > best_acc:
             best_acc = statistics[3][0]
             best_model = copy.deepcopy(model)
-        print(f"centralised at epoch {e} with validation acc {statistics[3][0]}")
+        print(
+            f"centralised at epoch {e} with validation acc {statistics[3][0]}")
         stats.append([statistics[2][0], statistics[3][0]])
 
     torch.save(
@@ -99,7 +100,6 @@ if args.centralised:
         best_model, f'best_centralised_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     np.savetxt(
         f'centralised_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.csv', np.array(stats).T, delimiter=",")
-        
 
 
 else:
@@ -111,7 +111,7 @@ else:
                                  optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, C_FRACTION, MU, epochs=args.epochs, client_epochs=args.client_epochs)
     elif args.federated_algo == "BSP":
         federated_algo = BSP(model, device, trainloaders, valloader, optim.SGD, criterion,
-                                optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, epochs=args.epochs)
+                             optim.lr_scheduler.StepLR, len(class_names), train_dataset_len, epochs=args.epochs)
     else:
         print("Specify a valid federated algorithm")
         exit()
@@ -123,4 +123,3 @@ else:
         best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
     np.savetxt(
         f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.csv', loss_acc_stats.T, delimiter=",")
-        

@@ -4,7 +4,7 @@ import time
 import copy
 
 
-def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_classes, num_epochs=1, phase='train'):
+def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_classes, num_epochs=1, phase='train', valloader_for_train=None):
     tloss, tacc = [], []
     vloss, vacc = [], []
 
@@ -57,6 +57,7 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
             running_loss += loss.item() * inputs.size(0)
             running_corrects += ((torch.sum(torch.from_numpy(preds).to(device)
                                             == labels.data)).item() / n_classes)
+
         if phase == 'train':
             scheduler.step()
 
@@ -73,17 +74,37 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
 
         # print(dataset_sizes[phase],epoch_acc)
         # print(type(epoch_loss),type(epoch_acc))
-        print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+        print('{} Train Loss: {:.4f} Train Acc: {:.4f}'.format(
             phase, epoch_loss, epoch_acc))
         print('-' * 10)
 
-        # deep copy the model
+        if valloader_for_train and phase == "train":
+            # Iterate over data.
+            for inputs, labels in valloader_for_train['data']:
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+
+                outputs = model(inputs)
+                outputcpu = outputs.cpu()
+                preds = np.heaviside(outputcpu.detach().numpy(), 0)
+                loss = criterion.loss_calculate(outputs, labels.type(
+                    torch.float), model, initial_model)
+                running_loss += loss.item() * inputs.size(0)
+                running_corrects += ((torch.sum(torch.from_numpy(preds).to(device)
+                                                == labels.data)).item() / n_classes)
+
+            epoch_loss = running_loss / valloader_for_train['size']
+            epoch_acc = (running_corrects) / valloader_for_train['size']
+            print('{} Val Loss: {:.4f} Val Acc: {:.4f}'.format(
+                phase, epoch_loss, epoch_acc))
+            print('-' * 10)
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
-    #print('Best val Acc: {:4f}'.format(best_acc))
+#print('Best val Acc: {:4f}'.format(best_acc))
 
-    # load best model weights
-    # model.load_state_dict(best_model_wts)
+# load best model weights
+# model.load_state_dict(best_model_wts)
+
     return model, [tloss, tacc, vloss, vacc]

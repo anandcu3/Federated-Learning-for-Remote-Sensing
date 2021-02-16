@@ -15,7 +15,7 @@ import copy
 import time
 
 parser = argparse.ArgumentParser(
-    description='Run speech recognition on Google or Azure. Followed by WER for the generated hypothesis.')
+    description='Run federated algorithms for remote sensing data like UCMercedLandUse dataset.')
 parser.add_argument('--cnn_model', '-c', type=str, required=True,
                     help='Specify which CNN to use. "lenet", "alexnet" or "resnet34"')
 parser.add_argument('--client_nr', '-n', type=int, required=False, default=3,

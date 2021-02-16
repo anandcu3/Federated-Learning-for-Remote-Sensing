@@ -12,7 +12,7 @@ import argparse
 import torch
 import datetime
 import copy
-
+import time
 
 parser = argparse.ArgumentParser(
     description='Run speech recognition on Google or Azure. Followed by WER for the generated hypothesis.')
@@ -122,4 +122,4 @@ else:
     torch.save(
         best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
     np.savetxt(
-        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.csv', loss_acc_stats.T, delimiter=",")
+        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}_{time.time()}.csv', loss_acc_stats.T, delimiter=",")

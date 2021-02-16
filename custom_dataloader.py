@@ -128,5 +128,5 @@ def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_
             dataloaders.append(
                 {'data': train_loader, 'size': len(client_sampler)})
     print("Num of dataloaders : ", len(dataloaders))
-    print(["Length of all dataloaders : ", a["size"] for a in dataloaders])
+    print("Length of all dataloaders : ", [a["size"] for a in dataloaders])
     return dataloaders, test_loader_dict, len(train_idx)

@@ -50,7 +50,7 @@ df_label = np.array(df)
 
 criterion = nn.BCEWithLogitsLoss()
 data_dir = Path(args.data_dir).resolve()
-C_FRACTION = 0.1  # For FedAvg and FedProx
+C_FRACTION = 0.6  # For FedAvg and FedProx
 MU = 1  # For FedProx
 
 if args.centralised:

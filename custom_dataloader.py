@@ -79,7 +79,7 @@ def sampler_split_for_client(cdata, idxs, df_label, small_label_skewness, nr_cli
     return splitlists
 
 
-def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_label_skewness, valid_size=.2):
+def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_label_skewness, valid_size=.2, batchsize = 4):
     np.random.seed(1)
     train_transforms = transforms.Compose([
         transforms.RandomResizedCrop(224),
@@ -114,7 +114,7 @@ def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_
         train_loader = torch.utils.data.DataLoader(
             train_data,
             sampler=train_sampler,
-            batch_size=4
+            batch_size=batchsize
         )
         dataloaders.append({'data': train_loader, 'size': len(train_idx)})
     else:
@@ -123,7 +123,7 @@ def load_split_train_test(datadir, labelmat, client_nr, skewness_percent, small_
             train_loader = torch.utils.data.DataLoader(
                 train_data,
                 sampler=train_sampler,
-                batch_size=4
+                batch_size=batchsize
             )
             dataloaders.append(
                 {'data': train_loader, 'size': len(client_sampler)})

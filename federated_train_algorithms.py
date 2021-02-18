@@ -51,7 +51,7 @@ class FedAvg():
                     optimizer_ft, step_size=7, gamma=0.1)
 
                 client_model, statistics = train_model(
-                    model_for_client, self.device, client, self.criterion, optimizer_ft, exp_scheduler,  self.n_classes, num_epochs=self.client_epochs, phase='train', valloader_for_train=self.valloader)
+                    model_for_client, self.device, client, self.criterion, optimizer_ft, exp_scheduler,  self.n_classes, num_epochs=self.client_epochs, phase='train', valloader_for_train=None)
                 model_client_list.append(client_model)
                 print(
                     f"Done with client number {ind + 1} with stats: {statistics}")

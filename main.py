@@ -32,6 +32,8 @@ parser.add_argument('--lr', type=float, required=False, default=0.001,
                     help='Learning Rate')
 parser.add_argument('--vs', type=float, required=False, default=.2,
                     help='validation split')
+parser.add_argument('--bs', type=int, required=False, default=4,
+                    help='batch size')
 parser.add_argument('--centralised', dest='centralised', action='store_true',
                     default=False, help="Use the flag if centralised learning is required")
 parser.add_argument('--small_skew', action='store_true',
@@ -50,7 +52,7 @@ df_label = np.array(df)
 
 criterion = nn.BCEWithLogitsLoss()
 data_dir = Path(args.data_dir).resolve()
-C_FRACTION = 0.6  # For FedAvg and FedProx
+C_FRACTION = 1  # For FedAvg and FedProx
 MU = 1  # For FedProx
 
 if args.centralised:
@@ -70,7 +72,7 @@ else:
     exit()
 
 trainloaders, valloader, train_dataset_len = load_split_train_test(
-    data_dir, df_label, args.client_nr, args.skewness, args.small_skew, args.vs)
+    data_dir, df_label, args.client_nr, args.skewness, args.small_skew, args.vs,  args.bs)
 
 if args.centralised:
     optimizer_ft = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)

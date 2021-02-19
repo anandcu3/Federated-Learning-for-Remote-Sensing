@@ -32,7 +32,7 @@ parser.add_argument('--lr', type=float, required=False, default=0.001,
                     help='Learning Rate')
 parser.add_argument('--vs', type=float, required=False, default=.2,
                     help='validation split')
-parser.add_argument('--bs', type=int, required=False, default=4,
+parser.add_argument('--bs', type=int, required=False, default=1,
                     help='batch size')
 parser.add_argument('--centralised', dest='centralised', action='store_true',
                     default=False, help="Use the flag if centralised learning is required")
@@ -120,8 +120,8 @@ else:
     last_model, best_model, loss_acc_stats = federated_algo.train_federated_model()
 
     torch.save(
-        last_model, f'latest_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
+        last_model, f'latest_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
     torch.save(
-        best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
+        best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
     np.savetxt(
-        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}_{time.time()}.csv', loss_acc_stats.T, delimiter=",")
+        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}_{time.time()}.csv', loss_acc_stats.T, delimiter=",")

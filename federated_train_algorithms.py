@@ -58,26 +58,37 @@ class FedAvg():
                 #del model_for_client
                 # torch.cuda.empty_cache()
 
-            # first initializer
+            # AVERAGE MODELS
+            # first model as an ititializer
             model_state = model_client_list[0].state_dict()
             client_data_size = client_subset[0]['size']
+            fraction_data_size = client_data_size
             for key in model_state:
                 model_state[key] = (client_data_size /
                                     self.train_dataset_len) * model_state[key]
 
+            # newly trained models
             for c in range(1, len(model_client_list)):
-
                 client_model_state = model_client_list[c].state_dict()
                 client_new_data_size = client_subset[c]['size']
+                fraction_data_size += client_new_data_size
 
                 for key in model_state:
                     model_state[key] += (client_new_data_size /
                                          self.train_dataset_len) * client_model_state[key]
 
+            # untrained models
+            rest_client_model_state = self.model.state_dict()
+            rest_clients_data_size = self.train_dataset_len - fraction_data_size
+            for key in model_state:
+                model_state[key] += (rest_clients_data_size / self.train_dataset_len) * rest_client_model_state[key]
+
+            # generated new averaged model
             averagedModel = copy.deepcopy(self.init_model)
             averagedModel.load_state_dict(model_state)
             self.model = copy.deepcopy(averagedModel)
 
+            # validate
             self.model = self.model.to(self.device)
             self.model, statistics = train_model(
                 self.model,  self.device, self.valloader,  self.criterion, None, None,  self.n_classes,  num_epochs=1, phase='val')

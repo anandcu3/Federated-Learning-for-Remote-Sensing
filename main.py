@@ -30,6 +30,8 @@ parser.add_argument('--client_epochs', '-ce', type=int, required=False, default=
                     help='the number of epochs per client')
 parser.add_argument('--lr', type=float, required=False, default=0.001,
                     help='Learning Rate')
+parser.add_argument('--cfraction', type=float, required=False, default=0.67,
+                    help='Learning Rate')
 parser.add_argument('--vs', type=float, required=False, default=.2,
                     help='validation split')
 parser.add_argument('--bs', type=int, required=False, default=1,
@@ -42,6 +44,7 @@ parser.add_argument('--data_dir', '-d', type=str, required=True,
                     help='Specify path to images folder of UCMerced_LandUse dataset. Eg. ./UCMerced_LandUse/Images')
 parser.add_argument('--multilabel_excelfilepath', type=str, default='multilabels/LandUse_Multilabeled.xlsx',
                     help='Specify path to label file of UCMerced_LandUse dataset. Eg. ./labelfolder/LandUse_Multilabeled.xlsx')
+
 args = parser.parse_args()
 
 class_names = np.array(["airplane", "bare-soil", "buildings", "cars", "chaparral", "court", "dock",
@@ -52,7 +55,7 @@ df_label = np.array(df)
 
 criterion = nn.BCEWithLogitsLoss()
 data_dir = Path(args.data_dir).resolve()
-C_FRACTION = 1  # For FedAvg and FedProx
+C_FRACTION = args.cfraction  # For FedAvg and FedProx
 MU = 1  # For FedProx
 
 if args.centralised:
@@ -118,10 +121,9 @@ else:
         print("Specify a valid federated algorithm")
         exit()
     last_model, best_model, loss_acc_stats = federated_algo.train_federated_model()
-
+    time_str = str(time.time())
     torch.save(
-        last_model, f'latest_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
+        last_model, f'latest_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}_cfraction_{args.cfraction}_bs_{args.bs}_{time_str}.pt')
     torch.save(
-        best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}.pt')
-    np.savetxt(
-        f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}_{time.time()}.csv', loss_acc_stats.T, delimiter=",")
+        best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}_cfraction_{args.cfraction}_bs_{args.bs}_{time_str}.pt')
+    np.savetxt(f'{args.federated_algo}_acc&loss_for_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}_cfraction_{args.cfraction}_bs_{args.bs}_{time_str}.csv', loss_acc_stats.T, delimiter=",")

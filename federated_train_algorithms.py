@@ -78,6 +78,7 @@ class FedAvg():
                                          self.train_dataset_len) * client_model_state[key]
 
             # untrained models
+            self.model = self.model.to(self.device)
             rest_client_model_state = self.model.state_dict()
             rest_clients_data_size = self.train_dataset_len - fraction_data_size
             for key in model_state:
@@ -89,7 +90,6 @@ class FedAvg():
             self.model = copy.deepcopy(averagedModel)
 
             # validate
-            self.model = self.model.to(self.device)
             self.model, statistics = train_model(
                 self.model,  self.device, self.valloader,  self.criterion, None, None,  self.n_classes,  num_epochs=1, phase='val')
 

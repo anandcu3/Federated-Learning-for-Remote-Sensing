@@ -7,9 +7,7 @@ from PIL import Image
 # parser
 parser = argparse.ArgumentParser(description='Visualization of Results')
 parser.add_argument('--type', '-t', type=str, required=True,
-                    help='Existing types: \'LOSS_ACC\' | \'ACC_MULTI\'')
-parser.add_argument('--title', '-x', type=str, required=False, default="",
-                    help='Add your plot title/description here')
+                    help='Existing types: \'ACC_F1\' | \'ACC_MULTI\'')
 parser.add_argument('--data_dir', '-d', nargs='+', required=True,
                     help='Specify path to csv file contain results, e.g. \'name_of_res1.csv\' \'name_of_res2.csv\'')
 args = parser.parse_args()
@@ -18,22 +16,24 @@ args = parser.parse_args()
 #redo
 def read_csv(path):
     res_data = np.genfromtxt(path, delimiter=',')
-    loss = res_data[0,:]
+    #loss = res_data[0,:]
     acc = res_data[1,:]
-    return loss, acc
+    f1 = res_data[2,:]
+    return f1, acc
 
-def visualize_loss_acc(path: str):
+def visualize_acc_f1(path: str):
     if path[-3:] != "csv":
         print("You need to reference a CSV file, e.g. myfile.csv")
         exit()
 
-    loss, acc = read_csv(path)
+    f1, acc = read_csv(path)
 
     # plot
-    loss_hist = np.array(loss)
+    f1_hist = np.array(f1)
     acc_hist = np.array(acc)
 
     # get parameters
+    # FedProx_acc&loss_for_lenet_with_8_clients_20_smallskew_False_clientsepox_5_vsplit_0.2_lr_0.001_cfraction_0.8_bs_1_1613863528.4838111
     path = path[:-4]
     chars = path.split("_")
     fed_alg = chars[0]
@@ -44,8 +44,8 @@ def visualize_loss_acc(path: str):
     
     plt.title(title)
     plt.xlabel("Training Epochs")
-    plt.ylabel("Accuracy/Loss")
-    plt.plot(range(1,len(loss)+1),loss_hist,label="Loss")
+    plt.ylabel("Accuracy/F1-Score")
+    plt.plot(range(1,len(f1)+1),f1_hist,label="F1-Score")
     plt.plot(range(1,len(acc)+1),acc_hist,label="Accuracy")
     plt.ylim((0,1.))
     plt.xticks(np.arange(1, len(acc)+1, 1.0))
@@ -88,13 +88,13 @@ def plot_acc_curves(acclist, title):
     plt.show(block=True)
 
 # CONTROLLER
-if args.type != "LOSS_ACC" and args.type != "ACC_MULTI": # and args.type != "ACC_MULTI_BARS":
+if args.type != "ACC_F1" and args.type != "ACC_MULTI": # and args.type != "ACC_MULTI_BARS":
     print("Please set the plotting type to one of the following: \'LOSS_ACC\' | \'ACC_MULTI\''")
     exit()
 
-if args.type == "LOSS_ACC":
+if args.type == "ACC_F1":
     path = args.data_dir[0]
-    visualize_loss_acc(path)
+    visualize_acc_f1(path)
 
 if args.type == "ACC_MULTI":
     accs = get_acc_from_csv(args.data_dir)

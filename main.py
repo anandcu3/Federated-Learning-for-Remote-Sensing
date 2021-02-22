@@ -99,11 +99,11 @@ if args.centralised:
         stats.append([statistics[2][0], statistics[3][0]])
     time_str = datetime.now().strftime("%d/%m_%H:%M")
     torch.save(
-        model, f'Centralised_CNN_{args.cnn_model}_bs_{args.bs}_{time_str}.pt')
+        model, f'Centralised_CNN_{args.cnn_model}_bs_{args.bs}_epochs_{args.epochs}_{time_str}.pt')
     # torch.save(
     #        best_model, f'best_centralised_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     np.savetxt(
-        f'Centralised_CNN_{args.cnn_model}_bs_{args.bs}_{time_str}.csv', np.array(stats).T, delimiter=",")
+        f'Centralised_CNN_{args.cnn_model}_bs_{args.bs}_epochs_{args.epochs}_{time_str}.csv', np.array(stats).T, delimiter=",")
 
 
 else:
@@ -122,7 +122,7 @@ else:
     last_model, best_model, loss_acc_stats = federated_algo.train_federated_model()
     time_str = datetime.now().strftime("%d_%m_%H_%M")
     torch.save(
-        last_model, f'{args.federated_algo}_CNN_{args.cnn_model}_clients_{args.client_nr}_skew_{args.skewness}_smallskew_{args.small_skew}_cepochs_{args.client_epochs}_cfrac_{args.cfraction}_bs_{args.bs}_{time_str}.pt')
+        last_model, f'{args.federated_algo}_CNN_{args.cnn_model}_clients_{args.client_nr}_skew_{args.skewness}_smallskew_{args.small_skew}_epochs_{args.epochs}_cepochs_{args.client_epochs}_cfrac_{args.cfraction}_bs_{args.bs}_{time_str}.pt')
     # torch.save(
     #    best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}_cfraction_{args.cfraction}_bs_{args.bs}_{time_str}.pt')
-    np.savetxt(f'{args.federated_algo}_CNN_{args.cnn_model}_clients_{args.client_nr}_skew_{args.skewness}_smallskew_{args.small_skew}_cepochs_{args.client_epochs}_cfrac_{args.cfraction}_bs_{args.bs}_{time_str}.csv', loss_acc_stats.T, delimiter=",")
+    np.savetxt(f'{args.federated_algo}_CNN_{args.cnn_model}_clients_{args.client_nr}_skew_{args.skewness}_smallskew_{args.small_skew}_epochs_{args.epochs}_cepochs_{args.client_epochs}_cfrac_{args.cfraction}_bs_{args.bs}_{time_str}.csv', loss_acc_stats.T, delimiter=",")

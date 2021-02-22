@@ -149,11 +149,11 @@ class BSP():
                 self.model, self.device, self.valloader, self.criterion, None, None, self.n_classes,  num_epochs=1, phase='val')
 
             # deep copy the model
-            if statistics[3][0] > best_acc:
-                best_acc = statistics[3][0]
+            if statistics[4][0] > best_acc:
+                best_acc = statistics[4][0]
                 self.best_model_wts = copy.deepcopy(self.model)
 
             print("Done with validation", statistics)
-            stats.append([statistics[2][0], statistics[3][0]])
+            stats.append([statistics[2][0], statistics[3][0], statistics[4][0]])
 
         return self.model, self.best_model_wts, np.array(stats)

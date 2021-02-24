@@ -6,3 +6,4 @@ __pycache__
 UCMerced_LandUse_augment/Images
 *.csv
 .vscode
+*/*.sh

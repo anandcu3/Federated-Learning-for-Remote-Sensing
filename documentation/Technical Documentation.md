@@ -1,6 +1,6 @@
 # The Impact of Federated Learning on Distributed Remote Sensing Archives
 
-The repository consists of the code for Federated Learning Experiments for Remote Sensing image data using convolution neural networks. It contains the implementation of three Federated Learning models: 
+The repository consists of the code for Federated Learning Experiments for Remote Sensing image data using convolution neural networks. It contains the implementation of three Federated Learning models:
 * [FedAVG](https://arxiv.org/abs/1602.05629)
 * [FedProx](https://arxiv.org/abs/1812.06127)
 * [BSP](https://dl.acm.org/doi/10.1145/79173.79181)
@@ -8,22 +8,32 @@ The repository consists of the code for Federated Learning Experiments for Remot
 The implementation is specifically made for the multi-label *UCMerced Landuse* [dataset](http://weegee.vision.ucmerced.edu/datasets/landuse.html). To apply other datasets it requires some modification.
 
 ## Table of Contents
+* Setup Details
 * Description of the files & Usage
 * Data Preparation and Splitting
 * Implementation of the Federated Learning Models
     * FedAVG
     * FedProx
     * BSP
- 
+
+## Setup Details
+- Python version 3.8.5
+- The packages used are provided in `requirements.txt` file which can be used to setup all the dependencies on a machine from scratch. This can be done using pip by
+``` pip install -r requirements.txt ```
+- It is recommended to use conda environments when using deep learning frameworks especially GPU supported libraries as there can be clash of versions if not. 
+
 ## Description of the files & Usage
 -  `main.py` : The file to run to start training based on the required experiment setup. Required Arguments are data path and the CNN model to use. For more details on how to use the arguments use `python main.py -h`. E.g.  `python main.py -c resnet34 -d ./UCMerced_LandUse/Images` trains FedAVG using resnet34 with the images in the provided path. The following parameters can be chosen for training:
      * CNN Model
-     * Number iof clients
+     * Number of clients
      * Federated Learning Model / Centralized
      * Percentage of label skewness
      * Number of Epochs
      * Number of local Epochs (FedAVG and FedProx)
      * Learning Rate
+     * Small Skew
+     * C Fraction (For FedAvg and FedProx)
+     * Batch Size
      * Validation Split
      * Data directory and multilabel excelfile path
 - `visualize.py`: This file is used to plot the results from training. When training the FL models using  `main.py` a `csv` is generated containing *loss*, *accuracy* and *F1-Score*. For more details on how to use the arguments use `python visualize.py -h`.
@@ -54,7 +64,7 @@ All clients, given to the the FL algorithms as parameter, are `torch.utils.data.
 4. Start again fromo step __1__ for the next round using the averaged model.
 
 ### FedProx
-The algorithm for `FedProx` is with exception of the used loss function exactly like for  `FedAVG`.  `FedProx` adds a proximal term to the standard local loss function that penalizes models that deviate too much from the global model. The loss function is defined in  `custom_loss_fns.py` and ...
+The algorithm for `FedProx` is with exception of the used loss function exactly like for  `FedAVG`.  `FedProx` adds a proximal term to the standard local loss function that penalizes models that deviate too much from the global model. The loss function is defined in  `custom_loss_fns.py` under the class `FedProxLoss`. This class takes in basic loss function `base_criterion` which can again be same as the one used for FedProx and a hyper parameter `mu` which impact how much the proximal term affects the overall loss. The proximal term is a penalty on the local client weights for deviating too much from the central weights.
 
 ### BSP
 The implementation of `BSP` is similar to `FedAVG` with a few exceptions. First, it skips step __1__ of choosing a fraction of clients. Furthermore, `BSP` doesn't average the models of all clients but rather passes them from one client to the next. A round is finished once the model has been passed to all clients (and has been trained by them).

@@ -17,10 +17,30 @@ The implementation is specifically made for the multi-label *UCMerced Landuse* [
     * BSP
 
 ## Setup Details
-- Python version 3.8.5
-- The packages used are provided in `requirements.txt` file which can be used to setup all the dependencies on a machine from scratch. This can be done using pip by
-``` pip install -r requirements.txt ```
-- It is recommended to use conda environments when using deep learning frameworks especially GPU supported libraries as there can be clash of versions if not. 
+
+### Option 1 : using Anaconda Distribution
+Python version 3.8.5
+It is recommended to use conda environments when using deep learning frameworks especially GPU supported libraries as there can be clash of versions if not. A `environment.yml` file is provided in the main directory which can be used to install the environment directly using conda. On linux follow these steps:
+```
+wget https://repo.anaconda.com/archive/Anaconda3-2020.11-Linux-x86_64.sh
+chmod +x Anaconda3-2020.11-Linux-x86_64.sh
+bash Anaconda3-2020.11-Linux-x86_64.sh
+```
+This will install Anaconda on the machine. Next create a virtual environment using the `environment.yml` file provided by
+```
+conda env create -f environment.yml
+```
+This creates the virtual environment `cv4rs` on the machine. Depending on the shell used the environment can be activated using
+```
+conda activate cv4rs
+```
+This environment should be able to run all the scripts and notebooks provided with the project.
+
+### Option 2 : Use pip
+ The packages used are provided in `requirements.txt` file which can be used to setup all the dependencies on a machine from scratch. This can be done using pip by
+```
+pip install -r requirements.txt
+```
 
 ## Description of the files & Usage
 -  `main.py` : The file to run to start training based on the required experiment setup. Required Arguments are data path and the CNN model to use. For more details on how to use the arguments use `python main.py -h`. E.g.  `python main.py -c resnet34 -d ./UCMerced_LandUse/Images` trains FedAVG using resnet34 with the images in the provided path. The following parameters can be chosen for training:
@@ -36,6 +56,8 @@ The implementation is specifically made for the multi-label *UCMerced Landuse* [
      * Batch Size
      * Validation Split
      * Data directory and multilabel excelfile path
+     The details are given below
+     
 - `visualize.py`: This file is used to plot the results from training. When training the FL models using  `main.py` a `csv` is generated containing *loss*, *accuracy* and *F1-Score*. For more details on how to use the arguments use `python visualize.py -h`.
 - `legacy_notebooks` : Code before combining all notebooks to a single project. Initial work was done almost individually.
 - `multilabels` : Contains the multilabel excel files for the UCMerced_LandUse dataset.

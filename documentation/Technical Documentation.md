@@ -74,7 +74,23 @@ pip install -r requirements.txt
 - `requirements.txt` : Can be used directly with pip/conda to setup the required packages.
 
 ## Data Preparation and Splitting
-// tbd
+the function `load_split_train_test` in `custom_dataloader.py` is used to create training dataloaders for the clients and a test (validation) dataloader for the server. the dataloaders are `torch.utils.data.Dataloader`.
+
+but first:
+1. a transformation is defined that rescale the images, add a random horizontal flip augmentation, then turn the image into Pytorch tensor and then normalize it.
+
+2. a train and test `CustomDataSet` objects (defined in `CustomDataSet.py`) are created, they store all the images from the dataset path and their labels, those custom datasets have the functions `getitem` that returns the image and its label as Pytorch tensors of a given index, and the `getlabel` that returns the label as a NumPy array.
+
+3. the images indices are first shuffled then split (based on the `Validation Split` parameter)
+
+4. for centralized learning the train and test dataloaders are created from the split from  __3__,
+but for federated, the train indices are split into multiple lists of indices using the function `sampler_split_for_client` based on the `number of clients` parameter, the dataset label distribution and the `percentage of label skewness` parameter. Then a train dataloader is created for each of the indices list that represents a client.
+
+The function `sampler_split_for_client` starts by calling the function `uncor_selecter`, which returns a list of classes indices (with the size of `number of clients`) that are least correlated. A given image index is assigned to a client based on the `percentage of label skewness` if the label for that index has one of the labels returned from the `uncor_selecter`, otherwise it is randomly assigned to one of the clients.
+
+the `uncor_selecter` selects as many uncorrelated classes as the `number of clients`, based on the labels following score: the sum of xor - the sum of and between 2 labels. the parameter `Small Skew` signals to the function whether to calculate the correlation and choose the class indices among the more or less common labels.
+
+
 
 ## Implementation of the Federated Learning Models
 All clients, given to the the FL algorithms as parameter, are `torch.utils.data.Dataloader` containing the respective data partition. The communication between *server* and *client* is simulated for all three algorithms.

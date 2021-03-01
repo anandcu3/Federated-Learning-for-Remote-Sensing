@@ -75,33 +75,22 @@ else:
 
 trainloaders, valloader, train_dataset_len = load_split_train_test(
     data_dir, df_label, args.client_nr, args.skewness, args.small_skew, args.vs,  args.bs)
-
 if args.centralised:
-    optimizer_ft = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    optimizer_ft = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     exp_lr_scheduler = optim.lr_scheduler.StepLR(
-        optimizer_ft, step_size=7, gamma=0.1)
+        optimizer_ft, step_size=15, gamma=0.1)
     criterion = BasicLoss_wrapper(criterion)
-
-    best_model = copy.deepcopy(model)
-    best_acc = 0.0
     stats = []
     for e in range(args.epochs):
+        print(e, " Epoch")
         model, _ = train_model(model, device, trainloaders[0], criterion, optimizer_ft, exp_lr_scheduler, len(
             class_names), num_epochs=1, phase='train')
         model, statistics = train_model(model,  device, valloader,  criterion, optimizer_ft,
                                         exp_lr_scheduler,  len(class_names),  num_epochs=1, phase='val')
-
-        if statistics[3][0] > best_acc:
-            best_acc = statistics[3][0]
-            best_model = copy.deepcopy(model)
-        print(
-            f"centralised at epoch {e} with validation acc {statistics[3][0]}")
-        stats.append([statistics[2][0], statistics[3][0]])
-    time_str = datetime.now().strftime("%d/%m_%H:%M")
+        stats.append([statistics[2][0], statistics[3][0], statistics[4][0]])
+    time_str = datetime.now().strftime("%d_%m_%H_%M")
     torch.save(
         model, f'Centralised_CNN_{args.cnn_model}_bs_{args.bs}_epochs_{args.epochs}_{time_str}.pt')
-    # torch.save(
-    #        best_model, f'best_centralised_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}.pt')
     np.savetxt(
         f'Centralised_CNN_{args.cnn_model}_bs_{args.bs}_epochs_{args.epochs}_{time_str}.csv', np.array(stats).T, delimiter=",")
 
@@ -123,6 +112,4 @@ else:
     time_str = datetime.now().strftime("%d_%m_%H_%M")
     torch.save(
         last_model, f'{args.federated_algo}_CNN_{args.cnn_model}_clients_{args.client_nr}_skew_{args.skewness}_smallskew_{args.small_skew}_epochs_{args.epochs}_cepochs_{args.client_epochs}_cfrac_{args.cfraction}_bs_{args.bs}_{time_str}.pt')
-    # torch.save(
-    #    best_model, f'best_{args.federated_algo}_{args.cnn_model}_with_{args.client_nr}_clients_{args.skewness}_smallskew_{args.small_skew}_clientsepox_{args.client_epochs}_vsplit_{args.vs}_lr_{args.lr}_cfraction_{args.cfraction}_bs_{args.bs}_{time_str}.pt')
     np.savetxt(f'{args.federated_algo}_CNN_{args.cnn_model}_clients_{args.client_nr}_skew_{args.skewness}_smallskew_{args.small_skew}_epochs_{args.epochs}_cepochs_{args.client_epochs}_cfrac_{args.cfraction}_bs_{args.bs}_{time_str}.csv', loss_acc_stats.T, delimiter=",")

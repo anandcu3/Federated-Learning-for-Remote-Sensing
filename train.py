@@ -4,6 +4,7 @@ import time
 import copy
 from sklearn.metrics import f1_score
 
+
 def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_classes, num_epochs=1, phase='train', valloader_for_train=None):
     tloss, tacc = [], []
     vloss, vacc = [], []
@@ -27,7 +28,7 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
         running_loss = 0.0
         running_corrects = 0
         f1_running_score = 0
-        b_nr = 0   
+        b_nr = 0
         # Iterate over data.
         for inputs, labels in dataloaders['data']:
             b_nr += 1
@@ -60,15 +61,15 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
             running_loss += loss.item() * inputs.size(0)
             running_corrects += ((torch.sum(torch.from_numpy(preds).to(device)
                                             == labels.data)).item() / n_classes)
-            f1_running_score += f1_score(preds,labels.data.to("cpu").numpy(), average="samples")
+            f1_running_score += f1_score(preds,
+                                         labels.data.to("cpu").numpy(), average="samples")
 
         if phase == 'train':
             scheduler.step()
 
         epoch_loss = running_loss / dataloaders['size']
         epoch_acc = (running_corrects) / dataloaders['size']
-        f1all = f1_running_score/b_nr
-
+        f1all = f1_running_score / b_nr
 
         if phase == 'train':
             tloss.append(epoch_loss)
@@ -81,7 +82,7 @@ def train_model(model, device, dataloaders, criterion, optimizer, scheduler, n_c
 
         # print(dataset_sizes[phase],epoch_acc)
         # print(type(epoch_loss),type(epoch_acc))
-        print('{} Train Loss: {:.4f} Train Acc: {:.4f} F1: {:.4f}'.format(
+        print('{} Loss: {:.4f} Acc: {:.4f} F1: {:.4f}'.format(
             phase, epoch_loss, epoch_acc, f1all))
         print('-' * 10)
 

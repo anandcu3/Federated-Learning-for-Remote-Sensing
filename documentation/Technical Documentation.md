@@ -56,19 +56,23 @@ pip install -r requirements.txt
      * Batch Size
      * Validation Split
      * Data directory and multilabel excelfile path
-     The details are given below
+     The details are given below.
      
-- `visualize.py`: This file is used to plot the results from training. When training the FL models using  `main.py` a `csv` is generated containing *loss*, *accuracy* and *F1-Score*. For more details on how to use the arguments use `python visualize.py -h`.
+- `visualize.py`: This file is used to plot the results from training. When training the FL models using  `main.py` a `csv` file is generated containing *loss*, *accuracy* and *F1-Score*. For more details on how to use the arguments use `python visualize.py -h`.
 - `legacy_notebooks` : Code before combining all notebooks to a single project. Initial work was done almost individually.
 - `multilabels` : Contains the multilabel excel files for the UCMerced_LandUse dataset.
 - `cnn_nets.py` : Contains the CNN architectures that can be used: `ResNet34`, `LeNet` and `AlexNet`
-- `custom_dataloader.py` : Includes the functions to split data across multiple clients in both IID and non-IID distributions. Furthermore it checks which classes are least correlated.
+    * `LeNet`: This model is copied from the original, with some minor adjustments for our dataset; the Kernel size is set to 5x5, additionally we adjust the output layer to our dataset.
+    * `ResNet34`: We use the `ResNet34` model provided by PyTorch and adjust the output layer to our dataset. The `pretrained` flag is set to `false`.
+    * `AlexNet`: We use the `AlexNet` model provided by PyTorch and adjust the output layer to our dataset. The `pretrained` flag is set to `false`.
+- `custom_dataloader.py` : Functions used in the class are used to generate a dataloader for an arbitrary number of clients and split the data in both IID and non-IID distributions. Furthermore it checks which classes are least correlated.
 - `custom_loss_fns.py` : Custom loss functions can be found here. One loss function is specifically for the FedProx Federated Learning algorithm. The other one is a wrapper to the Pytorch loss function. This was included to have a generic train function that supports custom loss functions.
 - `CustomDataSet.py` : Inherits the abstract class `torch.utils.data.Dataset` and overrides `__len__` and `__getitem__` method. This custom dataset class supports multilabel for each image.
 - `federated_train_algorithms.py` : Includes the implemented Federated Learning models. Supported FL algorithms:
     * FedAvg (Federated Averaging) ([Paper](https://arxiv.org/abs/1602.05629))
     * FedProx ([Paper](https://arxiv.org/abs/1812.06127))
     * Bulk Synchronous Processing (BSP) ([Paper](https://dl.acm.org/doi/10.1145/79173.79181))
+    More information on the implementation of each algorithm can be found below.
 - `FL_with_pytorch_only.ipynb` : The final notebook version from which the modular code was written from.
 -  `train.py` : The file has the training loop. This training loop is used by all federated algorithms.
 - `requirements.txt` : Can be used directly with pip/conda to setup the required packages.
@@ -89,7 +93,6 @@ but for federated, the train indices are split into multiple lists of indices us
 The function `sampler_split_for_client` starts by calling the function `uncor_selecter`, which returns a list of classes indices (with the size of `number of clients`) that are least correlated. A given image index is assigned to a client based on the `percentage of label skewness` if the label for that index has one of the labels returned from the `uncor_selecter`, otherwise it is randomly assigned to one of the clients.
 
 the `uncor_selecter` selects as many uncorrelated classes as the `number of clients`, based on the labels following score: the sum of xor - the sum of and between 2 labels. the parameter `Small Skew` signals to the function whether to calculate the correlation and choose the class indices among the more or less common labels.
-
 
 
 ## Implementation of the Federated Learning Models

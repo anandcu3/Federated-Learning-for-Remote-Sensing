@@ -57,7 +57,7 @@ pip install -r requirements.txt
      * Validation Split
      * Data directory and multilabel excelfile path
      The details are given below.
-     
+
 - `visualize.py`: This file is used to plot the results from training. When training the FL models using  `main.py` a `csv` file is generated containing *loss*, *accuracy* and *F1-Score*. For more details on how to use the arguments use `python visualize.py -h`.
 - `legacy_notebooks` : Code before combining all notebooks to a single project. Initial work was done almost individually.
 - `multilabels` : Contains the multilabel excel files for the UCMerced_LandUse dataset.
@@ -78,6 +78,8 @@ pip install -r requirements.txt
 - `requirements.txt` : Can be used directly with pip/conda to setup the required packages.
 
 ## Data Preparation and Splitting
+The augmented data set is available in the subfolder `UCMerced_LandUse_augment` with a link to the zip file to download from tubcloud. It also has the multilabel file for the augmented version of the dataset.
+
 the function `load_split_train_test` in `custom_dataloader.py` is used to create training dataloaders for the clients and a test (validation) dataloader for the server. the dataloaders are `torch.utils.data.Dataloader`.
 
 but first:
